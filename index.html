@@ -37,11 +37,37 @@
     .ham-btn { background: #F57C00; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #E65100; transition: 0.1s; outline: none; }
     .ham-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #E65100; }
     
-    /* 彈窗樣式 */
-    .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 2000; }
-    .ham-modal { background: #FFE0B2; border: 6px solid #F57C00; border-radius: 25px; padding: 30px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    .modal-input { width: 90%; padding: 8px; margin: 8px 0; border: 2px solid #F57C00; border-radius: 10px; outline: none; }
+       /* 🎨 彈窗視覺優化：告別突兀黑字 */
+    .modal-overlay { 
+      position: absolute; top: 0; left: 0; 
+      width: 100%; height: 100%; 
+      background: rgba(0,0,0,0.3); /* 遮罩調淡 */
+      display: none; justify-content: center; align-items: center; z-index: 2000; 
+      backdrop-filter: blur(2px); /* 增加背景模糊，更有質感 */
+    }
     
+    .ham-modal { 
+      background: #FFF9F0; /* 改為暖米白色 */
+      border: 6px solid #F57C00; 
+      border-radius: 30px; 
+      padding: 25px; 
+      text-align: center; 
+      width: 300px; 
+      box-shadow: 0 12px 30px rgba(230, 81, 0, 0.2); 
+      color: #8D4E12; /* ✨ 關鍵：把黑字改為「深可可色」，視覺更溫柔 */
+    }
+
+    .modal-input { 
+      width: 90%; padding: 10px; margin: 10px 0; 
+      border: 2px solid #FFCC80; 
+      border-radius: 12px; 
+      outline: none; 
+      color: #8D4E12; /* 輸入文字也同步改色 */
+      background: white;
+      text-align: center;
+      font-weight: bold;
+    }
+
     canvas { background: #FFE0B2; border: 2px solid #F57C00; border-radius: 10px; cursor: none; }
     .ding-style { color: #A52A2A !important; font-style: italic; font-weight: bold; }
     .chat-img { max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid #FFCC80; margin-top: 5px; display: block; }
@@ -185,7 +211,7 @@
                     <option value="busy" ${myData.mode === 'busy' ? 'selected' : ''}>🟠 忙線中</option>
                     <option value="away" ${myData.mode === 'away' ? 'selected' : ''}>⚪ 閒置中</option>
                   </select>
-                </div>`, "更新並同步", () => {
+                </div>`, "儲存", () => {
                   myData.name = document.getElementById('e-name').value || myData.name;
                   myData.avatar = document.getElementById('e-avatar').value || myData.avatar;
                   myData.status = document.getElementById('e-status').value || "Hecke!";
@@ -193,7 +219,7 @@
                   myData.color = document.getElementById('colorPicker').value;
                   saveUser(myData);
                   socket.emit('update profile', myData); 
-                  socket.emit('login', myData); // ✨ 強制更新畫面
+                  socket.emit('update profile', myData); 
               });
           };
       }
