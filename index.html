@@ -179,15 +179,17 @@
   // --- 📡 Socket 監聽 ---
   socket.on('chat message', d => { displayMsg(d); saveToLocal(d); });
 
+  // --- 🚀 這是 index.html 的 183 到 225 行，請直接整塊覆蓋 ---
   socket.on('user list', (users) => {
     const list = document.getElementById('user-list');
-    list.innerHTML = '';
+    list.innerHTML = ''; // 1. 先清空舊名單
+    
     users.forEach(u => {
       const isMe = (u.id === socket.id);
       const li = document.createElement('li');
       li.className = 'user-item' + (isMe ? ' me' : '');
       
-      // ✨ 漂亮排版結構
+      // 畫出頭像、狀態點點、暱稱與心情
       li.innerHTML = `
         <img src="${u.avatar || defaultPic}" class="user-avatar">
         <div class="user-info">
@@ -197,35 +199,38 @@
           <div class="user-mood-text">${u.status || 'Hecke!'}</div>
         </div>`;
 
-      if(isMe) {
-          li.style.cursor = "pointer";
-          li.ondblclick = () => {
-              hamShow("編輯個人資料 🐹", `
-                <div style="text-align:left; font-size:13px;">
-                  暱稱：<input class="modal-input" id="e-name" value="${myData.name}">
-                  頭貼網址：<input class="modal-input" id="e-avatar" value="${myData.avatar}">
-                  心情小語：<input class="modal-input" id="e-status" value="${myData.status}">
-                  在線狀態：
-                  <select class="modal-input" id="e-mode">
-                    <option value="online" ${myData.mode === 'online' ? 'selected' : ''}>🟢 上線中</option>
-                    <option value="busy" ${myData.mode === 'busy' ? 'selected' : ''}>🟠 忙線中</option>
-                    <option value="away" ${myData.mode === 'away' ? 'selected' : ''}>⚪ 閒置中</option>
-                  </select>
-                </div>`, "儲存", () => {
-                  myData.name = document.getElementById('e-name').value || myData.name;
-                  myData.avatar = document.getElementById('e-avatar').value || myData.avatar;
-                  myData.status = document.getElementById('e-status').value || "Hecke!";
-                  myData.mode = document.getElementById('e-mode').value;
-                  myData.color = document.getElementById('colorPicker').value;
-                  saveUser(myData);
-                  socket.emit('update profile', myData); 
-                  socket.emit('update profile', myData); 
-              });
-          };
+      if (isMe) {
+        li.style.cursor = "pointer";
+        li.ondblclick = () => {
+          hamShow("編輯個人資料 🐹", `
+            <div style="text-align:left; font-size:13px; color:#8D4E12;">
+              暱稱：<input class="modal-input" id="e-name" value="${myData.name}">
+              頭貼：<input class="modal-input" id="e-avatar" value="${myData.avatar}">
+              心情：<input class="modal-input" id="e-status" value="${myData.status}">
+              狀態：<select class="modal-input" id="e-mode">
+                <option value="online" ${myData.mode === 'online' ? 'selected' : ''}>🟢 上線中</option>
+                <option value="busy" ${myData.mode === 'busy' ? 'selected' : ''}>🟠 忙線中</option>
+                <option value="away" ${myData.mode === 'away' ? 'selected' : ''}>⚪ 閒置中</option>
+              </select>
+            </div>`, "儲存", () => {
+              // 2. 儲存新資料到本地
+              myData.name = document.getElementById('e-name').value || myData.name;
+              myData.avatar = document.getElementById('e-avatar').value || myData.avatar;
+              myData.status = document.getElementById('e-status').value || "Hecke!";
+              myData.mode = document.getElementById('e-mode').value;
+              saveUser(myData);
+              
+              // 3. 🎯 這裡用 'update user' 就不會跳通知
+              socket.emit('update user', myData); 
+          });
+        };
       }
-      list.appendChild(li); // ✨ 確保在迴圈內
+      list.appendChild(li); // 4. ✅ 確保這行在迴圈內，名單才會立刻刷新
     });
   });
+
+
+
 
   // --- 📩 傳送邏輯 ---
   document.getElementById('form').onsubmit = (e) => {
