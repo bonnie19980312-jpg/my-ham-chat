@@ -83,7 +83,8 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io();
+    const socket = io();
+  const defaultPic = "https://i.imgur.com"; // 預設頭貼
 
   // --- 💾 存檔與顯示邏輯 ---
   function saveToLocal(d) {
@@ -116,9 +117,10 @@
   function saveUser(u) { localStorage.setItem("hamtaroUser", JSON.stringify(u)); }
   function getUser() { return JSON.parse(localStorage.getItem("hamtaroUser")); }
 
-  const defaultPic = "https://i.pinimg.com";
-  let myData = getUser() || { name: "", avatar: defaultPic, status: "Hecke!", mode: 'online' };
+  // 初始讀取自己的資料
+  let myData = getUser() || { name: "", avatar: defaultPic, status: "Hecke!", mode: 'online', color: "#000000" };
 
+  // --- 🎨 萬用彈窗功能 ---
   function hamShow(title, contentHTML, btnText, callback) {
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = title;
@@ -131,20 +133,31 @@
     };
   }
 
+  // --- 🚀 初始化與登入 ---
   window.onload = () => {
     const history = JSON.parse(localStorage.getItem("hamHistory")) || [];
     history.forEach(d => displayMsg(d, true));
+
+    // ✨ 新增這行：讓小色盤自動變回你上次選的顏色
+    if (myData.color) {
+      document.getElementById('colorPicker').value = myData.color;
+    }
+
     if (myData.name) {
       socket.emit('login', myData);
     } else {
       hamShow("Welcome!", `<input class="modal-input" id="n-in" placeholder="Nickname">`, "Enter", () => {
         myData.name = document.getElementById('n-in').value || "Ham-Ham";
+        // ✨ 修改這行：登入時也順便把初始顏色存進去
+        myData.color = document.getElementById('colorPicker').value;
         saveUser(myData);
         socket.emit('login', myData);
       });
     }
   };
 
+
+  // --- 📡 Socket 監聽 ---
   socket.on('chat message', d => { displayMsg(d); saveToLocal(d); });
 
   socket.on('user list', (users) => {
@@ -155,31 +168,43 @@
       const li = document.createElement('li');
       li.className = 'user-item' + (isMe ? ' me' : '');
       
-li.innerHTML = `
-  <img src="${u.avatar || defaultPic}" class="user-avatar">
-  <div>
-    <div style="font-weight:bold; display:flex; align-items:center;">
-      <span class="status-dot ${u.mode}"></span>${u.name}
-    </div>
-    <div class="mood" style="font-size:10px; color:#FF9800; margin-left:16px;">
-      ${u.status}
-    </div>
-  </div>`;
+      // 這裡動態套用 status-dot 的顏色 (online, busy, away)
+      li.innerHTML = `
+        <img src="${u.avatar || defaultPic}" class="user-avatar">
+        <div>
+          <div style="font-weight:bold; display:flex; align-items:center;">
+            <span class="status-dot ${u.mode || 'online'}"></span>${u.name}
+          </div>
+          <div class="mood" style="font-size:10px; color:#FF9800; margin-left:16px;">
+            ${u.status || 'Hecke!'}
+          </div>
+        </div>`;
+
+      // 如果是自己，點兩下開啟編輯
       if(isMe) {
+          li.style.cursor = "pointer";
           li.ondblclick = () => {
-              hamShow("Edit Profile", `
-                <input class="modal-input" id="e-name" value="${u.name}" placeholder="Nickname">
-                <input class="modal-input" id="e-avatar" value="${u.avatar}" placeholder="Avatar URL">
-                <input class="modal-input" id="e-status" value="${u.status}" placeholder="Mood Message">
-              `, "Update", () => {
+              hamShow("編輯個人資料 🐹", `
+                <div style="text-align:left;">
+                  <label>暱稱：</label><input class="modal-input" id="e-name" value="${u.name}">
+                  <label>頭貼網址：</label><input class="modal-input" id="e-avatar" value="${u.avatar}">
+                  <label>心情：</label><input class="modal-input" id="e-status" value="${u.status}">
+                  <label>狀態：</label>
+                  <select class="modal-input" id="e-mode">
+                    <option value="online" ${u.mode === 'online' ? 'selected' : ''}>🟢 上線中</option>
+                    <option value="busy" ${u.mode === 'busy' ? 'selected' : ''}>🟠 忙線中</option>
+                    <option value="away" ${u.mode === 'away' ? 'selected' : ''}>⚪ 閒置中</option>
+                  </select>
+                </div>
+              `, "更新資料", () => {
                   myData = { 
                     name: document.getElementById('e-name').value || myData.name, 
                     avatar: document.getElementById('e-avatar').value || myData.avatar,
                     status: document.getElementById('e-status').value || "Hecke!",
-                    mode: "online" 
+                    mode: document.getElementById('e-mode').value 
                   };
                   saveUser(myData);
-                  socket.emit('update profile', myData);
+                  socket.emit('update profile', myData); // 通知 Server 更新
               });
           };
       }
@@ -187,20 +212,34 @@ li.innerHTML = `
     });
   });
 
+  // --- 📩 傳送訊息邏輯 ---
   document.getElementById('form').onsubmit = (e) => {
     e.preventDefault();
     const input = document.getElementById('input');
+    const currentColor = document.getElementById('colorPicker').value; // 取得現在選的顏色
+
     if (input.value) {
-      socket.emit('chat message', { user: myData.name, text: input.value, color: document.getElementById('colorPicker').value });
+      // --- 重點：把選好的顏色存進 myData 並寫入瀏覽器紀錄 ---
+      myData.color = currentColor; 
+      saveUser(myData); 
+
+      socket.emit('chat message', { 
+        user: myData.name, 
+        text: input.value, 
+        color: currentColor // 傳送這個顏色給所有人
+      });
       input.value = '';
     }
   };
+
+
   function sendDing() { socket.emit('chat message', { user: myData.name, type: 'ding' }); }
+
   function sendImage(input) {
-    if (input.files && input.files) {
+    if (input.files && input.files[0]) {
       const reader = new FileReader();
       reader.onload = (e) => socket.emit('chat message', { user: myData.name, image: e.target.result });
-      reader.readAsDataURL(input.files);
+      reader.readAsDataURL(input.files[0]);
     }
   }
 
@@ -243,7 +282,3 @@ li.innerHTML = `
     }
     loop();
   }
-</script>
-</body>
-</html>
-
