@@ -10,7 +10,10 @@
     #user-list { list-style: none; padding: 0; font-size: 12px; flex: 1; overflow-y: auto; }
     
     .user-item { display: flex; align-items: center; margin-bottom: 12px; padding: 8px; border-radius: 8px; }
-    .user-item.me { cursor: pointer; background: rgba(255,255,255,0.3); } 
+    .user-item:hover {
+  background: rgba(255,255,255,0.2);
+}
+
     
     .user-avatar { width: 45px; height: 45px; border-radius: 50%; margin-right: 12px; background: #FFF; border: 1px solid #F57C00; object-fit: cover; }
     
@@ -31,7 +34,7 @@
     .ham-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #E65100; }
     
     .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 2000; }
-    .ham-modal { background: white; border: 6px solid #F57C00; border-radius: 25px; padding: 30px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .ham-modal { background: #FFE0B2; border: 6px solid #F57C00; border-radius: 25px; padding: 30px; text-align: center; width: 320px; box-shadow: 0 10px 30px #E65100(0,0,0,0.3); }
     canvas { background: #FFE0B2; border: 2px solid #F57C00; border-radius: 10px; cursor: none; margin-bottom: 10px; }
     .modal-input { width: 85%; padding: 8px; margin: 8px 0; border: 2px solid #F57C00; border-radius: 10px; outline: none; }
     
@@ -50,7 +53,7 @@
     <div class="title-bar">🏠 Hamtaro Chatroom (Hecke!)</div>
     <ul id="messages"></ul>
     <div class="controls">
-      <label style="font-weight:bold; color:#E65100; cursor:pointer; font-size:15px;">A<input type="color" id="colorPicker" value="#000000" style="opacity:0; width:0;"></label>
+      <label style="cursor:pointer; font-size:18px;">🎨<input type="color" id="colorPicker" value="#000000" style="opacity:0; width:0;"></label>
       <button onclick="sendDing()" style="background:none; border:none; cursor:pointer; font-size:20px;">🔔</button>
       <button onclick="openGame()" style="background:none; border:none; cursor:pointer; font-size:20px;">🌻</button>
       <label style="cursor:pointer; font-size:20px;">🖼️<input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="sendImage(this)"></label>
@@ -152,16 +155,16 @@
       const li = document.createElement('li');
       li.className = 'user-item' + (isMe ? ' me' : '');
       
-      // 🟢 這裡修正名單排版：點點在名字前，心情小語在下方，移除模式文字
-      li.innerHTML = `
-        <img src="${u.avatar || defaultPic}" class="user-avatar">
-        <div>
-          <div style="font-weight:bold; display:flex; align-items:center;">
-            <span class="status-dot ${u.mode}"></span>${u.name}
-          </div>
-          <div style="font-size:10px; color:#666; margin-left:16px;">${u.status}</div>
-        </div>`;
-        
+li.innerHTML = `
+  <img src="${u.avatar || defaultPic}" class="user-avatar">
+  <div>
+    <div style="font-weight:bold; display:flex; align-items:center;">
+      <span class="status-dot ${u.mode}"></span>${u.name}
+    </div>
+    <div class="mood" style="font-size:10px; color:#FF9800; margin-left:16px;">
+      ${u.status}
+    </div>
+  </div>`;
       if(isMe) {
           li.ondblclick = () => {
               hamShow("Edit Profile", `
@@ -243,3 +246,4 @@
 </script>
 </body>
 </html>
+
