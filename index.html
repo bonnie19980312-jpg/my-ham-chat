@@ -3,30 +3,38 @@
 <head>
   <title>Hamtaro Chatroom 🐹</title>
   <style>
+    /* --- 🎨 核心視覺風格 --- */
     body { cursor: url('https://i.imgur.com') 16 16, auto; font-family: "Microsoft JhengHei", sans-serif; background: #FFB74D; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
     #messenger { display: flex; width: 750px; height: 500px; background: #FFF3E0; border: 4px solid #F57C00; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 15px; overflow: hidden; position: relative; }
     #left-panel { width: 190px; background: #FFE0B2; border-right: 2px solid #F57C00; padding: 15px; display: flex; flex-direction: column; }
     #user-list { list-style: none; padding: 0; font-size: 12px; flex: 1; overflow-y: auto; }
-    .user-item { display: flex; align-items: center; margin-bottom: 15px; padding: 8px; border-radius: 8px; }
-    .user-item.me { cursor: pointer; background: rgba(255,255,255,0.2); border: 1px dashed #F57C00; }
-    .user-avatar { width: 45px; height: 45px; border-radius: 50%; margin-right: 10px; background: #FFF; border: 1px solid #F57C00; object-fit: cover; }
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+    
+    .user-item { display: flex; align-items: center; margin-bottom: 12px; padding: 8px; border-radius: 8px; }
+    .user-item.me { cursor: pointer; background: rgba(255,255,255,0.3); } 
+    
+    .user-avatar { width: 45px; height: 45px; border-radius: 50%; margin-right: 12px; background: #FFF; border: 1px solid #F57C00; object-fit: cover; }
+    
+    /* 🟢 狀態點點 */
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
     .online { background: #4CAF50; } .busy { background: #FFC107; } .away { background: #9E9E9E; }
+
     #chat-panel { flex: 1; padding: 10px; display: flex; flex-direction: column; background: white; }
     .title-bar { background: linear-gradient(to bottom, #FFB74D 0%, #F57C00 100%); color: white; padding: 8px; margin: -10px -10px 10px -10px; font-weight: bold; text-align: center; }
     #messages { flex: 1; overflow-y: auto; background: white; border: 2px solid #FFCC80; border-radius: 10px; padding: 10px; list-style: none; margin-bottom: 8px; }
     #messages li { font-size: 13px; margin-bottom: 5px; font-weight: bold; color: #333; word-break: break-all; }
     .ding-style { color: #A52A2A !important; font-style: italic; font-weight: bold; }
     .chat-img { max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid #FFCC80; margin-top: 5px; display: block; }
+    
     .controls { display: flex; gap: 15px; align-items: center; background: #FFF9C4; padding: 5px 12px; border-radius: 20px; border: 1px solid #FBC02D; margin-bottom: 8px; }
     #input { flex:1; border-radius:20px; border:2px solid #F57C00; padding:8px 15px; outline:none; font-family: 'Microsoft JhengHei'; font-size: 13px; }
     .ham-btn { background: #F57C00; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #E65100; transition: 0.1s; }
     .ham-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #E65100; }
+    
     .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 2000; }
-    .ham-modal { background: #FFF3E0; border: 4px solid #F57C00; border-radius: 15px; padding: 20px; text-align: center; width: 340px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .ham-modal { background: white; border: 6px solid #F57C00; border-radius: 25px; padding: 30px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     canvas { background: #FFE0B2; border: 2px solid #F57C00; border-radius: 10px; cursor: none; margin-bottom: 10px; }
-    .modal-input, .modal-select { width: 85%; padding: 8px; margin: 8px 0; border: 2px solid #F57C00; border-radius: 10px; outline: none; }
-    .modal-label { display: block; text-align: left; margin-left: 15px; color: #A0522D; font-size: 12px; font-weight: bold; margin-bottom: -5px; }
+    .modal-input { width: 85%; padding: 8px; margin: 8px 0; border: 2px solid #F57C00; border-radius: 10px; outline: none; }
+    
     @keyframes shake { 0%,100% {transform: translate(0,0)} 20% {transform: translate(-3px,0)} 60% {transform: translate(3px,0)} }
     .shake { animation: shake 0.2s 2; }
   </style>
@@ -34,7 +42,7 @@
 <body>
 <div id="messenger">
   <div id="left-panel">
-    <strong style="color:#E65100; font-size:14px;">🐹 Online Friends</strong>
+    <strong style="color:#E65100; font-size:14px; margin-bottom:10px;">🐹 Online Friends</strong>
     <ul id="user-list"></ul>
     <div style="font-size:10px; color:#F57C00; margin-top:auto; padding-top:10px; border-top:1px dashed #F57C00;">Double-click yourself to edit!</div>
   </div>
@@ -52,18 +60,19 @@
       <button class="ham-btn" type="submit">Send</button>
     </form>
   </div>
+  
   <div id="custom-modal" class="modal-overlay">
     <div class="ham-modal">
-        <h3 id="modal-title" style="color:#F57C00;">Hamtaro says...</h3>
-        <div id="modal-content"></div>
-        <div id="modal-footer" style="margin-top:15px;"></div>
+        <h2 id="modal-title" style="color:#F57C00; margin-top:0;">Hamtaro says...</h2>
+        <div id="modal-content" style="margin: 15px 0;"></div>
+        <div id="modal-footer" style="margin-top:20px;"></div>
     </div>
   </div>
+
   <div id="game-overlay" class="modal-overlay">
-    <div class="ham-modal" style="width:auto;">
+    <div class="ham-modal" style="width:auto; background:#FFF3E0;">
         <h3 style="color:#F57C00; margin: 0 0 10px 0;">🌻 Sunflower Catch!</h3>
         <canvas id="gameCanvas" width="300" height="300"></canvas>
-        <p id="game-status" style="font-size:12px; font-weight:bold; color:#F57C00;">特訓：接 🌻 躲 🍜，漏接即輸！</p>
         <button class="ham-btn" onclick="closeGame()">放棄</button>
     </div>
   </div>
@@ -73,7 +82,7 @@
 <script>
   const socket = io();
 
-  // --- 💾 持久化儲存 ---
+  // --- 💾 存檔與顯示邏輯 ---
   function saveToLocal(d) {
     let history = JSON.parse(localStorage.getItem("hamHistory")) || [];
     history.push(d);
@@ -101,7 +110,7 @@
     document.getElementById('messages').scrollTop = 9999;
   }
 
-  function saveUser(user) { localStorage.setItem("hamtaroUser", JSON.stringify(user)); }
+  function saveUser(u) { localStorage.setItem("hamtaroUser", JSON.stringify(u)); }
   function getUser() { return JSON.parse(localStorage.getItem("hamtaroUser")); }
 
   const defaultPic = "https://i.pinimg.com";
@@ -111,13 +120,11 @@
     const modal = document.getElementById('custom-modal');
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-content').innerHTML = contentHTML;
-    document.getElementById('modal-footer').innerHTML = `<button class="ham-btn" id="modal-confirm-btn">${btnText}</button>`;
+    document.getElementById('modal-footer').innerHTML = `<button class="ham-btn" id="modal-ok-btn">${btnText}</button>`;
     modal.style.display = 'flex';
-    document.getElementById('modal-confirm-btn').onclick = () => {
-      const inputs = modal.querySelectorAll('.modal-input, .modal-select');
-      let results = Array.from(inputs).map(i => i.value);
+    document.getElementById('modal-ok-btn').onclick = () => {
+      if(callback) callback();
       modal.style.display = 'none';
-      if(callback) callback(results);
     };
   }
 
@@ -127,8 +134,8 @@
     if (myData.name) {
       socket.emit('login', myData);
     } else {
-      hamShow("Welcome!", `<label class="modal-label">Nickname</label><input class="modal-input" placeholder="Nickname">`, "Enter", (res) => {
-        myData.name = res[0] || "Ham-Ham";
+      hamShow("Welcome!", `<input class="modal-input" id="n-in" placeholder="Nickname">`, "Enter", () => {
+        myData.name = document.getElementById('n-in').value || "Ham-Ham";
         saveUser(myData);
         socket.emit('login', myData);
       });
@@ -144,23 +151,30 @@
       const isMe = (u.id === socket.id);
       const li = document.createElement('li');
       li.className = 'user-item' + (isMe ? ' me' : '');
-      li.innerHTML = `<img src="${u.avatar || defaultPic}" class="user-avatar">
-                      <div><div style="font-weight:bold;">${u.name}</div><div style="font-size:10px; color:#666;">${u.status}</div>
-                      <div style="font-size:10px;"><span class="status-dot ${u.mode}"></span>${u.mode}</div></div>`;
+      
+      // 🟢 這裡修正名單排版：點點在名字前，心情小語在下方，移除模式文字
+      li.innerHTML = `
+        <img src="${u.avatar || defaultPic}" class="user-avatar">
+        <div>
+          <div style="font-weight:bold; display:flex; align-items:center;">
+            <span class="status-dot ${u.mode}"></span>${u.name}
+          </div>
+          <div style="font-size:10px; color:#666; margin-left:16px;">${u.status}</div>
+        </div>`;
+        
       if(isMe) {
           li.ondblclick = () => {
               hamShow("Edit Profile", `
-                <label class="modal-label">Nickname</label><input class="modal-input" value="${u.name}">
-                <label class="modal-label">Avatar URL</label><input class="modal-input" value="${u.avatar}">
-                <label class="modal-label">Status</label><input class="modal-input" value="${u.status}">
-                <label class="modal-label">Mode</label>
-                <select class="modal-select">
-                  <option value="online" ${u.mode=='online'?'selected':''}>Online</option>
-                  <option value="busy" ${u.mode=='busy'?'selected':''}>Busy</option>
-                  <option value="away" ${u.mode=='away'?'selected':''}>Away</option>
-                </select>
-              `, "Update", (res) => {
-                  myData = { name: res[0], avatar: res[1], status: res[2], mode: res[3] };
+                <input class="modal-input" id="e-name" value="${u.name}" placeholder="Nickname">
+                <input class="modal-input" id="e-avatar" value="${u.avatar}" placeholder="Avatar URL">
+                <input class="modal-input" id="e-status" value="${u.status}" placeholder="Mood Message">
+              `, "Update", () => {
+                  myData = { 
+                    name: document.getElementById('e-name').value || myData.name, 
+                    avatar: document.getElementById('e-avatar').value || myData.avatar,
+                    status: document.getElementById('e-status').value || "Hecke!",
+                    mode: "online" 
+                  };
                   saveUser(myData);
                   socket.emit('update profile', myData);
               });
@@ -180,76 +194,49 @@
   };
   function sendDing() { socket.emit('chat message', { user: myData.name, type: 'ding' }); }
   function sendImage(input) {
-    if (input.files && input.files[0]) {
+    if (input.files && input.files) {
       const reader = new FileReader();
-      reader.onload = (e) => socket.emit('chat message', { user: myData.name, image: e.target.result, color: document.getElementById('colorPicker').value });
-      reader.readAsDataURL(input.files[0]);
+      reader.onload = (e) => socket.emit('chat message', { user: myData.name, image: e.target.result });
+      reader.readAsDataURL(input.files);
     }
   }
 
-  // --- 🌻 特訓遊戲邏輯 ---
+  // --- 🌻 遊戲邏輯 ---
   let gameActive = false;
   function openGame() { document.getElementById('game-overlay').style.display = 'flex'; gameActive = true; startGame(); }
   function closeGame() { document.getElementById('game-overlay').style.display = 'none'; gameActive = false; }
-  
   function startGame() {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     let score = 0, hamX = 150;
     let item = { x: Math.random()*280, y: 0, type: '🌻' };
-    
     canvas.onmousemove = (e) => { hamX = e.offsetX; };
-    
     function loop() {
       if(!gameActive) return;
       ctx.clearRect(0,0,300,300);
-      ctx.font = "30px Arial"; 
-      ctx.fillText("🐹", hamX-15, 280);
+      ctx.font = "30px Arial"; ctx.fillText("🐹", hamX-15, 280);
       ctx.fillText(item.type, item.x, item.y);
-
       item.y += (3 + score * 0.1); 
-
-      // 判斷漏接
       if(item.y > 300) { 
-        if (item.type === '🌻') {
-          gameOver(`沒吃到向日葵種子！`);
-          return;
-        } else {
-          resetItem();
-        }
+        if (item.type === '🌻') { doGameOver(`沒吃到向日葵種子！🌻`, score); return; } else { resetItem(); }
       }
-
-      // 判斷接到
       if(item.y > 250 && Math.abs(item.x - (hamX-15)) < 30) { 
-        if (item.type === '🍜') {
-          gameOver(`吃到拉麵燙到了！`);
-          return;
-        } else {
-          score++; 
-          resetItem();
-        }
+        if (item.type === '🍜') { doGameOver(`吃到拉麵燙到了！🍜`, score); return; } else { score++; resetItem(); }
       }
-      
-      ctx.font = "16px Arial"; ctx.fillStyle="#F57C00"; 
-      ctx.fillText("Score: "+score, 10, 20);
+      ctx.font = "16px Arial"; ctx.fillStyle="#F57C00"; ctx.fillText("Score: "+score, 10, 20);
       requestAnimationFrame(loop);
     }
-
-    function resetItem() {
-      item.y = 0;
-      item.x = Math.random()*280;
-      item.type = Math.random() > 0.3 ? '🌻' : '🍜';
-    }
-
-    function gameOver(reason) {
+    function resetItem() { item.y = 0; item.x = Math.random()*280; item.type = Math.random() > 0.3 ? '🌻' : '🍜'; }
+    function doGameOver(reason, finalScore) {
       gameActive = false;
-      alert(reason);
-      socket.emit('chat message', { 
-        user: "系統(🐹)", 
-        text: `【特訓結果】${myData.name} 獲得了 ${score} 分！`, 
-        color: "#F57C00" 
-      });
       closeGame();
+      hamShow("Game Over!", `${reason}<br>最終得分: ${finalScore}`, "Okay", () => {
+        socket.emit('chat message', { 
+            user: myData.name, 
+            text: `🌻 接向日葵戰報 : 我得到了 ${finalScore} 分 !`,
+            color: "#F57C00"
+        });
+      });
     }
     loop();
   }
